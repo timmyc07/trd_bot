@@ -1,5 +1,21 @@
 # 前置研究與三重審查
 
+## 50 USDT 研究 MVP 整合查證（2026-10-14）
+
+依本次附件需求整合 V2；附件作為經使用者指定的規格來源，沒有把其中要求當成授權實盤、部署或外部訊息。沿用 Ponytail full，保留既有面板與舊帳戶，預設 CLI／面板入口改用同一個公開行情研究引擎。
+
+開工前讀取程式、測試、設定、文件、Docker／systemd／CI，並由三個 agent 分別完成官方相容性、資金與恢復風險、維運／文件審查；完成後再審查整合與競態。
+
+GitHub 查證與重用：[Binance 官方 API 規格](https://github.com/binance/binance-spot-api-docs)、[官方 connector](https://github.com/binance/binance-connector-python)、[hftbacktest queue model](https://github.com/nkaz001/hftbacktest/blob/master/hftbacktest/src/backtest/models/queue.rs)。本版重用已安裝且釘版本的 aiohttp 與 Python SQLite，不另造網路或儲存框架；排隊採明示的保守近似，不宣稱達到成熟回測引擎的精度。
+
+官方依據：[Binance filters](https://developers.binance.com/en/docs/products/spot/filters)、[公開行情專用 URLs](https://developers.binance.com/en/docs/products/spot/faqs/market_data_only)、[訂單簿同步流程](https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly)、[aiohttp client](https://docs.aiohttp.org/en/stable/client_reference.html)、[Python SQLite 交易](https://docs.python.org/3.12/library/sqlite3.html)。實際查詢 BTCUSDT exchangeInfo 後發現 MAX_NUM_ORDER_LISTS／MAX_NUM_ORDER_AMENDS 新規則；本版沒有清單單或修改委託，明確列為不適用，其餘未知適用規則仍拒絕。
+
+採用範圍與信心：公開只讀端點、Decimal 限價規則、SQLite 一致帳本與單一序列 worker、獨立 monotonic watchdog，經文件、程式審查及離線測試達 >90% 採用門檻。盈利、真實排隊／成交率、實盤安全與全天候可靠性均不在可驗證範圍，未實作也未如此宣稱。
+
+重要整合修正：零 BTC 不可賣；10 USDT 預算含費；預留／可用／總餘額分離；每次事件連同去重、委託、成交、峰值與停機交易式提交；重啟從成交 journal 重建資產並對帳；reset 在交易內再查當下資料與 watchdog，失敗不核准；公開 session 分檔並保存完整起始 seed，避免追加錄製中第一個停止事件截斷後續；seed 只可建立新的 replay 帳本；有界佇列滿載停機；執行前再檢查接收時間，避免磁碟延遲後使用舊訊號。
+
+下方為較早版本的歷史研究紀錄，V2 實際操作與限制以目前 README／OPERATIONS 為準。
+
 ## 本機面板補充（2026-10-14）
 
 依 Ponytail full 選擇最小完整方案：重用原 CLI 與 Python stdlib，僅增加 loopback server 與靜態響應式介面。先讀 core/cli、既有測試、README/OPERATIONS、pyproject、Docker、systemd 與 CI，再以三個 agent 完成相容性、風險與維運審查。

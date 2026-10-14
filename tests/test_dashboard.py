@@ -11,6 +11,9 @@ from unittest.mock import Mock, patch
 
 from trd_bot.core import Config, Engine
 from trd_bot.dashboard import Controller, make_server, tail
+from trd_bot.research_engine import ResearchEngine
+from trd_bot.research_config import ResearchConfig
+from trd_bot.ledger import read_snapshot
 
 
 class DashboardTests(unittest.TestCase):
@@ -52,8 +55,8 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(self.controller.snapshot()["status"], "stopping")
 
     def test_existing_account_needs_explicit_resume(self):
-        engine = Engine(Config(), self.controller.directory, "binance_public")
-        engine.halt("kill_switch")
+        engine = ResearchEngine(ResearchConfig(), self.controller.directory, "binance_public")
+        engine.control("kill_switch")
         (engine.directory / "KILL").touch()
         with self.assertRaises(ValueError):
             self.controller.action("start")
@@ -61,10 +64,11 @@ class DashboardTests(unittest.TestCase):
                 patch("trd_bot.dashboard.subprocess.Popen", return_value=Mock(pid=123)) as spawn:
             self.controller.action("resume")
             self.assertIn("--acknowledge-risk", resume.call_args.args[0])
-            self.assertFalse((engine.directory / "KILL").exists())
+            self.assertTrue((engine.directory / "KILL").exists())  # Only successful CLI reset removes it.
             self.assertEqual(spawn.call_count, 1)
-        saved = json.loads((engine.directory / "state.json").read_text(encoding="utf-8"))
-        self.assertEqual(saved["cash"], "10000")
+        saved = read_snapshot(engine.directory)
+        self.assertEqual(saved["cash"], "50")
+        engine.close()
 
     def test_historical_health_is_not_running(self):
         engine = Engine(Config(), self.controller.directory, "binance_public")
@@ -88,14 +92,15 @@ class DashboardTests(unittest.TestCase):
 
     def test_resume_review_is_paper_account_even_after_demo(self):
         paper = self.controller.directory
-        engine = Engine(Config(), paper, "binance_public")
-        engine.halt("daily_loss")
+        engine = ResearchEngine(ResearchConfig(), paper, "binance_public")
+        engine.control("drawdown")
         self.controller.directory = paper.parent / "demo-test"
         demo = Engine(Config(), self.controller.directory, "synthetic_demo")
         demo.health()
         snapshot = self.controller.snapshot()
         self.assertIsNone(snapshot["report"]["halt_reason"])
-        self.assertEqual(snapshot["paper_review"]["halt_reason"], "daily_loss")
+        self.assertEqual(snapshot["paper_review"]["halt_reason"], "drawdown")
+        engine.close()
 
     def test_failed_worker_visible_and_lock_not_deleted(self):
         process = Mock(pid=123, returncode=1)

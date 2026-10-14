@@ -1,5 +1,5 @@
 [Unit]
-Description=Binance public-feed paper market maker
+Description=Finite Binance public-only research run (manual template)
 After=network-online.target
 Wants=network-online.target
 
@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=trdbot
 WorkingDirectory=/srv/trd_bot
-ExecStart=/srv/trd_bot/.venv/bin/python -m trd_bot paper --seconds 0 --runtime /srv/trd_bot/runtime/paper
+ExecStart=/srv/trd_bot/.venv/bin/python -m trd_bot paper --seconds 60 --runtime /srv/trd_bot/runtime/v2-paper
 Restart=no
 KillSignal=SIGINT
 TimeoutStopSec=30

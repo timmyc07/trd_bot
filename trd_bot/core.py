@@ -1,4 +1,7 @@
-"""Deterministic spot paper engine; amounts and prices use Decimal."""
+"""Legacy V1 offline regression engine and shared Decimal/JSON helpers.
+
+The supported CLI and panel execute research_engine.py (V2), never this engine.
+"""
 from __future__ import annotations
 
 from collections import deque

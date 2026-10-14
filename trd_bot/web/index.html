@@ -20,14 +20,14 @@
   </section>
   <div class="workspace">
     <section class="card market-card"><div class="card-heading"><div class="pair"><span class="coin">₿</span><div><h2>Bitcoin <span>BTC / USDT</span></h2><p id="source" class="muted small">尚未選擇資料來源</p></div></div><span id="freshness" class="chip">等待行情</span></div>
-      <div class="price-line"><strong id="price">—</strong><span>USDT · 買賣中間價</span></div>
+      <div class="price-line"><strong id="price">—</strong><span>USDT · 最佳買價保守估值</span></div>
       <div class="chart"><svg id="chart" viewBox="0 0 800 220" role="img" aria-label="本頁觀察期間價格走勢" preserveAspectRatio="none"><defs><linearGradient id="fade" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#9add72" stop-opacity=".2"/><stop offset="100%" stop-color="#9add72" stop-opacity="0"/></linearGradient></defs><path id="chart-area" fill="url(#fade)"/><path id="chart-line" fill="none" stroke="#b3ed8e" stroke-width="2.5" vector-effect="non-scaling-stroke"/></svg><div id="chart-empty" class="chart-empty"><span>⌁</span><strong>你的行情，即將開始</strong><p>開始公開行情模擬後，這裡會顯示價格變化。</p></div></div>
       <div class="chart-footer"><span>本頁觀察期間 · 最多 120 個樣本</span><span id="chart-range">尚無走勢資料</span></div>
       <div class="market-stats"><div><span>行情樣本</span><strong id="samples">—</strong></div><div><span>決策延遲 p99</span><strong id="latency">—</strong></div><div><span>模擬掛單</span><strong id="orders">—</strong></div></div>
     </section>
-    <aside class="card control-card"><p class="eyebrow">CONTROL ROOM</p><h2>開始你的模擬</h2><p class="muted">選擇公開行情或離線示範。停止後會保留帳戶，恢復前需要你確認。</p>
+    <aside class="card control-card"><p class="eyebrow">CONTROL ROOM</p><h2>50 USDT 研究帳戶</h2><p class="muted">起始 50 USDT / 0 BTC。單筆含費預算 10 USDT，最多一張模擬單。</p>
       <div class="mode-info"><span class="dot"></span><div><strong>Binance · BTC/USDT</strong><span>真實公開行情 / 本機模擬成交</span></div></div>
-      <button id="start" class="button primary" data-action="start">▶ 開始公開行情模擬</button>
+      <button id="start" class="button primary" data-action="start">▶ 開始 60 秒公開行情模擬</button>
       <button id="resume" class="button primary" hidden>↻ 審查後恢復公開行情</button>
       <button id="stop" class="button danger" data-action="stop" disabled>■ 停止目前的 bot</button>
       <div class="divider"><span>也可以先熟悉操作</span></div>
@@ -37,13 +37,13 @@
     </aside>
   </div>
   <section class="card risk-card"><div class="card-heading"><div><p class="eyebrow">GUARDRAILS</p><h2>風險邊界</h2></div><span class="muted small">保留原始風控基準</span></div><div class="risk-grid">
-    <div><div class="risk-label"><span>BTC 庫存</span><strong id="inventory-label">—</strong></div><progress id="inventory" max="100" value="0" aria-label="BTC 庫存使用率"></progress><span id="inventory-cap" class="muted small">上限 — BTC</span></div>
-    <div><div class="risk-label"><span>當日虧損額度</span><strong id="loss-label">—</strong></div><progress id="loss" max="100" value="0" aria-label="當日虧損額度使用率"></progress><span id="loss-cap" class="muted small">上限 — USDT · UTC 日界</span></div>
-    <div><div class="risk-label"><span>目前回撤</span><strong id="drawdown-label">—</strong></div><progress id="drawdown" max="100" value="0" aria-label="回撤額度使用率"></progress><span id="drawdown-cap" class="muted small">上限 — USDT</span></div>
+    <div><div class="risk-label"><span>持倉曝險</span><strong id="inventory-label">—</strong></div><progress id="inventory" max="100" value="0" aria-label="持倉曝險使用率"></progress><span id="inventory-cap" class="muted small">上限 — BTC</span></div>
+    <div><div class="risk-label"><span>預留買入資金</span><strong id="loss-label">—</strong></div><progress id="loss" max="100" value="0" aria-label="預留買入資金使用率"></progress><span id="loss-cap" class="muted small">上限 — USDT · UTC 日界</span></div>
+    <div><div class="risk-label"><span>峰值回撤</span><strong id="drawdown-label">—</strong></div><progress id="drawdown" max="100" value="0" aria-label="回撤額度使用率"></progress><span id="drawdown-cap" class="muted small">上限 — USDT</span></div>
   </div></section>
   <section class="card activity-card"><div class="card-heading"><div><p class="eyebrow">ACTIVITY</p><h2>最近模擬成交</h2></div><span class="chip">最近 12 筆</span></div><div class="table-scroll"><table><thead><tr><th>時間</th><th>方向</th><th>成交價格 / USDT</th><th>數量 / BTC</th><th>手續費 / USDT</th></tr></thead><tbody id="trades"><tr><td colspan="5" class="empty-table">尚無成交。公開行情接通後，也不一定立即產生成交。</td></tr></tbody></table></div></section>
   <details class="card logs-card"><summary>執行日誌 <span class="muted small">連線與停機的完整線索</span></summary><pre id="logs">尚無執行日誌。</pre></details>
-  <footer><span>TRD / 本機模擬交易工作台</span><span id="runtime">runtime/dashboard/paper</span><span>模擬結果不代表實盤收益。</span></footer>
+  <footer><span>TRD / 本機模擬交易工作台</span><span id="runtime">runtime/dashboard/v2-paper</span><span>模擬結果不代表實盤收益。</span></footer>
 </main>
-<dialog id="resume-dialog"><form method="dialog"><p class="eyebrow">REVIEW BEFORE RESUME</p><h2>確認後，再繼續。</h2><p>即將恢復公開行情帳戶（runtime/dashboard/paper）。恢復會保留現金、BTC 持倉、每日虧損基準與回撤高點；若仍超過限制，系統會再次停機。</p><p id="resume-reason" class="notice"></p><details class="logs-card"><summary>此帳戶的最近日誌</summary><pre id="resume-logs"></pre></details><label class="check"><input id="ack" type="checkbox">我已檢查停機原因，確認恢復模擬交易。</label><div class="dialog-actions"><button class="button secondary" value="cancel">取消</button><button id="confirm-resume" class="button primary" type="button" disabled>確認恢復</button></div></form></dialog>
+<dialog id="resume-dialog"><form method="dialog"><p class="eyebrow">REVIEW BEFORE RESUME</p><h2>確認後，再繼續。</h2><p>即將恢復公開行情帳戶（runtime/dashboard/v2-paper）。恢復會保留現金、BTC 持倉、預留款紀錄與淨值高點；若仍超過限制，系統會再次停機。</p><p id="resume-reason" class="notice"></p><details class="logs-card"><summary>此帳戶的最近日誌</summary><pre id="resume-logs"></pre></details><label class="check"><input id="ack" type="checkbox">我已檢查停機原因，同意驗證新鮮行情與帳本後恢復。</label><div class="dialog-actions"><button class="button secondary" value="cancel">取消</button><button id="confirm-resume" class="button primary" type="button" disabled>確認恢復</button></div></form></dialog>
 </body></html>

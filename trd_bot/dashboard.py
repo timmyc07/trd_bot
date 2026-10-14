@@ -12,7 +12,8 @@ import time
 import uuid
 import webbrowser
 
-from .core import Config
+from .research_config import ResearchConfig as Config
+from .ledger import read_snapshot
 
 LOG = logging.getLogger("trd_bot")
 ASSETS = Path(__file__).with_name("web")
@@ -35,7 +36,7 @@ class Controller:
         self.root = root.resolve()
         self.config = self.root / "config.json"
         self.cfg = Config.load(self.config)
-        self.directory = self.root / "runtime" / "dashboard" / "paper"
+        self.directory = self.root / "runtime" / "dashboard" / "v2-paper"
         self.process = None
         self.started_at = 0
         self.stopping = False
@@ -55,7 +56,7 @@ class Controller:
         self.started_at = time.time()
         self.stopping = False
         args = self.argv(command, directory)
-        args += ["--seconds", "0"] if command == "paper" else ["--steps", "2000"]
+        args += ["--seconds", str(self.cfg.duration_seconds)] if command == "paper" else ["--steps", "600"]
         with (directory / "panel.log").open("ab") as logfile:
             self.process = subprocess.Popen(args, cwd=self.root, stdin=subprocess.DEVNULL,
                 stdout=logfile, stderr=subprocess.STDOUT, shell=False,
@@ -77,23 +78,22 @@ class Controller:
                 raise ValueError("不支援的操作")
             if self.running():
                 raise ValueError("請先停止目前的 bot")
-            directory = self.root / "runtime" / "dashboard" / "paper"
+            directory = self.root / "runtime" / "dashboard" / "v2-paper"
             if action == "demo":
                 directory = directory.parent / ("demo-" + uuid.uuid4().hex[:12])
                 self.spawn("demo", directory)
                 return
             if (directory / "engine.lock").exists():
                 raise ValueError("帳戶仍有程序鎖；請先確認舊程序已停止，面板不會自動刪鎖")
-            if action == "start" and ((directory / "state.json").exists() or (directory / "KILL").exists()):
+            if action == "start" and ((directory / "ledger.sqlite3").exists() or (directory / "state.json").exists() or (directory / "KILL").exists()):
                 raise ValueError("此帳戶已有執行紀錄，請使用「審查後恢復」保留資產與風控基準")
             if action == "resume":
-                if not (directory / "state.json").exists():
+                if not (directory / "ledger.sqlite3").exists():
                     raise ValueError("尚無公開行情模擬帳戶，請先開始模擬")
-                (directory / "KILL").unlink(missing_ok=True)
                 with (directory / "panel.log").open("ab") as logfile:
                     result = subprocess.run(self.argv("resume", directory) + ["--acknowledge-risk"],
                         cwd=self.root, stdin=subprocess.DEVNULL, stdout=logfile, stderr=subprocess.STDOUT,
-                        shell=False, timeout=15,
+                        shell=False, timeout=30,
                         creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0)
                 if result.returncode:
                     self.directory = directory
@@ -119,7 +119,7 @@ class Controller:
                 status = "stopping" if self.stopping else "demo" if demo else "connecting"
                 if not self.stopping and not demo and current and report.get("halt_reason"):
                     status = "halting"
-                elif not self.stopping and not demo and current and age is not None:
+                elif not self.stopping and not demo and current and age is not None and report.get("data_fresh", True):
                     status = "running" if age <= self.cfg.max_data_age_ms / 1000 else "stale"
             elif self.process is not None and self.process.returncode:
                 status = "failed"
@@ -133,11 +133,11 @@ class Controller:
                     fills.append(json.loads(line))
                 except ValueError:
                     continue
-            paper = self.root / "runtime" / "dashboard" / "paper"
+            paper = self.root / "runtime" / "dashboard" / "v2-paper"
             paper_review = {}
-            if (paper / "state.json").exists():
+            if (paper / "ledger.sqlite3").exists():
                 try:
-                    saved = json.loads((paper / "state.json").read_text(encoding="utf-8"))
+                    saved = read_snapshot(paper)
                     paper_review = {key: saved.get(key) for key in ("halt_reason", "cash", "base")}
                 except (OSError, ValueError):
                     paper_review = {"error": "公開行情帳戶狀態無法讀取，請檢查原始狀態檔"}
@@ -147,7 +147,7 @@ class Controller:
                 "exit_code": self.process.poll() if self.process else None,
                 "config": asdict(self.cfg), "fills": list(reversed(fills)),
                 "logs": tail(self.directory / "panel.log"),
-                "paper_exists": (paper / "state.json").exists(),
+                "paper_exists": (paper / "ledger.sqlite3").exists(),
                 "paper_review": paper_review, "paper_logs": tail(paper / "panel.log", 12),
                 "paper_locked": (paper / "engine.lock").exists()}
 

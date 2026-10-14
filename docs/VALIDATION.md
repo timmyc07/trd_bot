@@ -1,5 +1,32 @@
 # 驗證紀錄
 
+## V2 附件整合：最終驗證（2026-10-14）
+
+環境：Windows x64、Python 3.12.10、aiohttp 3.14.5、pytest 9.1.1；依賴釘版本於 requirements-lock.txt。最終 `.venv/Scripts/python -m pytest -q`：**85 passed、35 subtests passed、0 failed**（6.43s）。前一輪 watchdog 測試因把初始化耗時算進極短門檻而失敗，已以明確 worker-entered 同步消除測試競態；沒有藉此放寬產品的5秒門檻。
+
+測試涵蓋 Decimal／交易規則、MIN/NOTIONAL 與量化、百分比規則與來源時效、未知規則、假傳輸端點／重新導向阻擋、sequence gap、有界佇列、SQLite 實際子程序崩潰回滾、去重與 journal、預留款、無 BTC 禁賣、部分成交／取消順序／到期、費用只扣一次、淨值與浮動回撤、正常重啟與不一致帳本拒絕、人工 reset 等待時 watchdog 競態、磁碟 worker 停滯時 watchdog 繼續運作、執行前年齡重查、雙 session 起始快照與可重播性、不交易對照、固定情境時序切分及既有面板防護回歸。
+
+實際命令與結果：
+
+```powershell
+.\.venv\Scripts\python -m trd_bot demo --runtime runtime/v2-cli-demo --steps 100
+.\.venv\Scripts\python -m trd_bot replay --input runtime/v2-cli-demo/events.jsonl --runtime runtime/v2-cli-replay
+.\.venv\Scripts\python -m trd_bot compare --input runtime/v2-cli-demo/events.jsonl --runtime runtime/v2-cli-compare
+.\.venv\Scripts\python -m trd_bot paper --runtime runtime/v2-public-check --seconds 15
+.\.venv\Scripts\python -m trd_bot replay --input runtime/v2-public-check/events-0.jsonl --runtime runtime/v2-public-replay
+.\.venv\Scripts\python -m pytest -q
+.\.venv\Scripts\python -m pip check
+git diff --check
+```
+
+- 100 次合成迭代／200 events：18筆模擬部分／完整成交，cash40.36465936、BTC0.00016、equity49.95825936、fees0.02878064、PnL-0.04174064 USDT；重播一致，errors0。合成結果不是歷史績效。
+- compare 成功輸出開發／保留資料兩區、不交易與3個固定交易情境之 JSON／CSV；沒有保留集調參。
+- 真實公開只讀錄製15秒：214 events、fills0、equity50、errors0，因 duration_complete 停機；沒有金鑰或外部訂單。對應分次錄製重播成功，財務結果一致。
+- `pip check` 沒有破損依賴；差異格式檢查通過。面板實際啟動新版50USDT合成示範，來源、預留／可用餘額、40%持倉邊界、5%回撤與有限60秒操作均已接入。
+- 0.2.0 wheel 建置成功，archive 驗證含版本化規則 fixture、面板與新引擎／SQLite 模組；最終程序清單確認沒有 trd_bot 測試程序持續執行。
+
+未驗證：Linux 執行、Docker／systemd 啟動、長時間 soak、真實排隊精度、實際帳戶費率、盈利與實盤安全。沒有部署、排程、監控或實盤 adapter；驗證後停止測試面板與 bot。以下為舊版驗證歷史，不取代上述 V2 結果。
+
 ## 操作面板驗證（2026-10-14）
 
 - 完整 unittest：29 項通過（原16項 + 面板10項 + 儲存3項）。面板測試包含並行啟動僅產生一個子程序、停止正確 runtime、明確 resume、舊報表非運行狀態、失敗退出、程序鎖、關閉清理、bounded log、HTTP Host/Origin/token/body限制、停止狀態優先與 demo/paper 審查資料分離。

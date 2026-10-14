@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "source": "synthetic_fixture_v1_not_live_exchange_rules",
+  "fetched_ms": 1700000000000,
+  "max_age_ms": 3600000,
+  "exchangeInfo": {
+    "symbols": [{
+      "symbol": "BTCUSDT", "status": "TRADING", "isSpotTradingAllowed": true,
+      "orderTypes": ["LIMIT"],
+      "filters": [
+        {"filterType": "PRICE_FILTER", "minPrice": "0.01", "maxPrice": "1000000", "tickSize": "0.01"},
+        {"filterType": "LOT_SIZE", "minQty": "0.00001", "maxQty": "100", "stepSize": "0.00001"},
+        {"filterType": "NOTIONAL", "minNotional": "5", "maxNotional": "1000000", "applyMinToMarket": false, "applyMaxToMarket": false}
+      ]
+    }]
+  }
+}
