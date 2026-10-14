@@ -1,0 +1,19 @@
+{
+  "symbol": "BTC/USDT",
+  "initial_cash": "10000",
+  "initial_base": "0.005",
+  "order_size": "0.001",
+  "max_base": "0.01",
+  "max_notional": "1500",
+  "max_daily_loss": "50",
+  "max_drawdown": "100",
+  "half_spread_bps": "4",
+  "skew_bps_per_unit": "2",
+  "fee_bps": "10",
+  "tick_size": "0.01",
+  "latency_ms": 50,
+  "max_data_age_ms": 2000,
+  "max_spread_bps": "50",
+  "refresh_ms": 1000,
+  "max_orders_per_second": 4
+}

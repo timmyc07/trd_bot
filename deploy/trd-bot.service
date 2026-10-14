@@ -1,0 +1,22 @@
+[Unit]
+Description=Binance public-feed paper market maker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=trdbot
+WorkingDirectory=/srv/trd_bot
+ExecStart=/srv/trd_bot/.venv/bin/python -m trd_bot paper --seconds 0 --runtime /srv/trd_bot/runtime/paper
+Restart=no
+KillSignal=SIGINT
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/trd_bot/runtime
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

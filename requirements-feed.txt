@@ -1,0 +1,2 @@
+# Direct public feed dependency pinned to the version validated for this project.
+ccxt==4.5.87

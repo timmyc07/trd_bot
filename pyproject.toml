@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trd-bot"
+version = "0.1.0"
+description = "Public-market-data paper market maker with replay and persistent risk controls"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+feed = ["ccxt==4.5.87"]
+
+[project.scripts]
+trd-bot = "trd_bot.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["trd_bot*"]
