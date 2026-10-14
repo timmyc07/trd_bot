@@ -17,3 +17,6 @@ trd-bot = "trd_bot.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["trd_bot*"]
+
+[tool.setuptools.package-data]
+trd_bot = ["web/*"]

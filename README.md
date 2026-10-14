@@ -6,6 +6,24 @@ Binance BTC/USDT 公開行情驅動的 **paper-only 做市 bot**。Python 3.12�
 
 ## 先跑起來
 
+### 圖形操作面板（建議）
+
+Windows 雙擊根目錄的 **`launch-panel.cmd`**，會使用現有 `.venv` 並自動開啟瀏覽器。也可在專案根目錄執行：
+
+```powershell
+.\.venv\Scripts\python -m trd_bot dashboard --open-browser
+```
+
+開啟 [本機面板](http://127.0.0.1:8765)。不需安裝前端套件；公開行情仍需要 `requirements-feed.txt` 的 CCXT。
+
+面板可直接執行離線示範、啟動公開行情模擬、停止 bot、審查後恢復；自動顯示資產、損益、BTC 持倉、價格走勢、風控用量、最近成交與執行日誌。停止／錯誤／等待行情會以中文說明。桌面與窄螢幕皆可使用。
+
+面板公開行情帳戶獨立存在 `runtime/dashboard/paper`，不會修改先前 CLI 的 `runtime/paper-1`。每次示範建立新目錄。恢復視窗會顯示公開行情帳戶自己的停機原因與日誌，保留原始資產和風控基準。
+
+關閉瀏覽器分頁不會停止 bot；請先按「停止目前的 bot」。面板服務的終端機按 Ctrl+C 會要求 bot 安全停止並等待退出。不要直接強制關閉程序；鎖檔處理見 [維運文件](docs/OPERATIONS.md)。
+
+### 指令列
+
 在 repo 根目錄執行。離線 demo、replay、測試僅需要 Python 標準函式庫：
 
 ```powershell

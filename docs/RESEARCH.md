@@ -1,5 +1,17 @@
 # 前置研究與三重審查
 
+## 本機面板補充（2026-10-14）
+
+依 Ponytail full 選擇最小完整方案：重用原 CLI 與 Python stdlib，僅增加 loopback server 與靜態響應式介面。先讀 core/cli、既有測試、README/OPERATIONS、pyproject、Docker、systemd 與 CI，再以三個 agent 完成相容性、風險與維運審查。
+
+GitHub 深層搜尋比較 [Hummingbot Dashboard](https://github.com/hummingbot/dashboard)、其 [部署依賴](https://github.com/hummingbot/dashboard/blob/main/INSTALLATION.md) 和 Streamlit 交易面板生態。Hummingbot Dashboard 需要獨立 backend/broker/Docker，不符合此小型本機 bot 的最小範圍，未複製其源碼。直接重用 [CPython HTTP server](https://github.com/python/cpython/blob/3.12/Lib/http/server.py) 與既有交易 CLI，避免重寫交易／復原邏輯。
+
+官方查核：[Python HTTP server](https://docs.python.org/3.12/library/http.server.html)、[subprocess](https://docs.python.org/3.12/library/subprocess.html)。HTTP server 非 production server，因此只綁定127.0.0.1、Host/Origin/token 驗證、不允許任意路徑／指令、不配置 CORS；子程序不用 shell，輸出導向檔案並限量讀尾端。
+
+三重審查確認採用信心 >90%；後置審查修正停止中狀態被新鮮 health 覆蓋、demo 後恢復確認引用錯誤帳戶、連線恢復後舊警告未清除。保留原金額計算、logger、風控與鎖；不新增真實下單、帳戶重設、遠端部署或 AI 自動調參。
+
+實測發現 Windows 面板 reader 與 state/health replace 的短暫競爭，另行搜尋 [GitHub 同類問題](https://github.com/jamesdchen/hpc-agent/issues/153)、[atomicwrites 上游說明](https://github.com/untitaker/python-atomicwrites)，並查核 [Microsoft CreateFile share mode](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew)、[Python os.replace](https://docs.python.org/3.12/library/os.html#os.replace)。經三個 agent 再審查後，在原 helper 添加 Windows 限次 PermissionError 重試；不引入已停止維護的 atomicwrites 套件，不取消原子替換或錯誤保護。
+
 日期：2026-10-14。原工作目錄為空，沒有既有程式、文件與部署設定。開工前依使用者要求，以三個 agent 分別完成官方相容性、程式／風險、維運／慣例審查；後續再次審查核心與 CLI。
 
 ## GitHub 深層搜尋與重用決策

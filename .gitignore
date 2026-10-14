@@ -3,5 +3,7 @@ __pycache__/
 *.egg-info/
 runtime/
 dist/
+build/
+.codex-remote-attachments/
 .env
 KILL

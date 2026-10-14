@@ -1,5 +1,21 @@
 # 維運與部署
 
+## 本機操作面板
+
+`launch-panel.cmd` 或 `python -m trd_bot dashboard --open-browser`。預設 URL `http://127.0.0.1:8765`，若 port 已被其他服務使用，可指定 `--port 8766`。僅綁定 IPv4 loopback，請使用印出的 127.0.0.1 URL，不使用 localhost 別名；請勿將此標準函式庫 server 代理到公網。
+
+面板以同一 Python interpreter、固定參數陣列與 `shell=False` 呼叫原 CLI；公開行情帳戶固定為 `runtime/dashboard/paper`，demo 使用全新目錄。原 `engine.lock` 繼續防止多 writer，面板不會自動移除程序鎖、不編輯交易參數、不重設帳戶、不自動恢復。
+
+「開始公開行情模擬」只可啟動新帳戶。既有帳戶需按「審查後恢復」，確認停機原因、該帳戶日誌與餘額後勾選確認。此操作才會移除 KILL，執行既有 `resume --acknowledge-risk` 並啟動 paper。若仍超過損失／曝險限制，核心仍會再次停機。
+
+「停止」建立目前執行帳戶的 KILL，包含 demo；面板顯示停止中直到子程序退出。若尚在初始 `load_markets()` 階段，最多需等約 30 秒。關閉分頁僅關閉畫面；面板 terminal Ctrl+C 則停止 HTTP server，寫入 KILL 並等子程序清理，40 秒後仍未退出才強制終止並保留狀態／鎖供審查。直接強制關閉 terminal/斷電無法保證 cleanup，需依原復原流程確認程序與鎖。
+
+報表每秒輪詢，程序存活與行情新鮮度分開顯示；保存的舊報表不會冒充運行狀態。圖表只包含本頁開啟期間最多 120 個公開行情樣本，不是完整歷史。合成示範僅在完成時產生 health，執行期間可展開日誌查看進度。`panel.log` 追加程序輸出；畫面最多讀取尾端 32 KiB／40 行，記得定期封存磁碟資料。
+
+所有路由驗證 Host；變更狀態須 JSON POST、同源 Origin 與每次服務啟動隨機 token。靜態路由白名單不公開 repo 原始檔，log/trade 以 textContent 呈現，沒有 CDN 或外部前端依賴。此設計適合可信使用者的本機研究，不提供多使用者登入或遠端託管。
+
+Windows 讀取報表時可能短暫阻擋原子替換。共用 `atomic_json` 僅對 Windows replace 的 PermissionError 做首次嘗試 + 5 次重試，共等待最多 310ms，並記錄 logger；持續拒絕仍拋錯停機、保留舊快照，可能留下 `.tmp` 供調查。沒有刪除目的檔或改成直接覆寫。此同步等待可能增加資料延遲，原本 2 秒行情門檻保持不變；連線延遲超標時面板顯示停機，不能當作程式故障而直接放寬限制。
+
 ## 本機停止與復原
 
 1. 查看 `health.json`、stderr/journald 和 `state.json`。`heartbeat_utc` 是最後一次報表時間，不代表行情一定健康；同時檢查 last_book_ms、halt_reason。

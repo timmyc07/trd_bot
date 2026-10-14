@@ -7,12 +7,14 @@ from datetime import datetime, timezone
 from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR
 import json
 import logging
+import os
 from pathlib import Path
 import time
 
 LOG = logging.getLogger("trd_bot")
 ZERO = Decimal("0")
 BPS = Decimal("10000")
+WINDOWS = os.name == "nt"
 
 
 def dec(value) -> Decimal:
@@ -28,9 +30,19 @@ def atomic_json(path: Path, value: dict):
     with temporary.open("w", encoding="utf-8") as handle:
         json.dump(value, handle, indent=2, default=str, allow_nan=False)
         handle.flush()
-        import os
         os.fsync(handle.fileno())
-    temporary.replace(path)
+    # Windows readers briefly deny rename; never fall back to a partial overwrite.
+    for attempt in range(6 if WINDOWS else 1):
+        try:
+            temporary.replace(path)
+            return
+        except PermissionError:
+            if not WINDOWS or attempt == 5:
+                LOG.exception("Atomic state publication failed: %s", path)
+                raise
+            if attempt == 0:
+                LOG.warning("Windows file busy; retrying atomic publication: %s", path)
+            time.sleep(.01 * 2 ** attempt)
 
 
 @dataclass(frozen=True)

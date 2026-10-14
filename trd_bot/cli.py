@@ -156,7 +156,9 @@ async def paper(engine, seconds):
 
 def main():
     parser = argparse.ArgumentParser(description="Paper-only Binance BTC/USDT market maker")
-    parser.add_argument("command", choices=("demo", "replay", "paper", "report", "resume"))
+    parser.add_argument("command", choices=("demo", "replay", "paper", "report", "resume", "dashboard"))
+    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--open-browser", action="store_true")
     parser.add_argument("--config", type=Path, default=Path("config.json"))
     parser.add_argument("--runtime", type=Path, default=Path("runtime/paper"))
     parser.add_argument("--input", type=Path)
@@ -165,6 +167,10 @@ def main():
     parser.add_argument("--acknowledge-risk", action="store_true")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    if args.command == "dashboard":
+        from .dashboard import serve
+        serve(args.port, args.open_browser)
+        return
     if args.seconds < 0 or args.steps < 1:
         parser.error("seconds must be nonnegative and steps positive")
     if args.command == "report":
